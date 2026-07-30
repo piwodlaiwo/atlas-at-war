@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Atlas at War</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A turn-based Europe-conquest strategy game played on real geography, powered by the MapJSON API.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Atlas at War</h1>
+    <span class="tag">conquer europe · powered by mapjson</span>
+  </header>
+
+  <main class="layout">
+    <div class="map-wrap" id="map"></div>
+
+    <aside class="hud">
+      <div id="banner" class="banner" hidden></div>
+      <div id="turn" class="turn">Loading…</div>
+      <div class="btn-row">
+        <button id="fortify" class="btn ghost" disabled>Move armies</button>
+        <button id="blitz" class="btn ghost" disabled title="One click launches a full assault on the target">⚡ Blitz: off</button>
+      </div>
+      <button id="endturn" class="btn wide" disabled>End turn</button>
+      <div class="econ">
+        <div class="hint2">Reinforcements scale with territory — ~1 army per 3 lands (min 3), plus a bonus for holding a whole region.</div>
+        <div class="hint2">Strand a single enemy land away from their main force and it's cut off (⚠): it can't reinforce and loses a unit each turn. Groups of two or more stay supplied.</div>
+        <div id="bounty" class="bounty"></div>
+      </div>
+      <div id="counts" class="counts"></div>
+      <div id="battle" class="battle"></div>
+      <div class="log-wrap"><div id="log" class="log"></div></div>
+      <button id="newgame" class="btn ghost">New game</button>
+      <div id="status" class="status"></div>
+    </aside>
+  </main>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
