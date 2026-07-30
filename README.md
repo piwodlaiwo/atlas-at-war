@@ -1,8 +1,12 @@
 # Atlas at War
 
-A turn-based world-conquest strategy game (RISK-flavored) played on real geography,
-powered by the [MapJSON](https://mapjson.com) API. Buildless static site — plain
-HTML + ES modules, `d3` and `topojson-client` loaded from a CDN.
+A turn-based **Europe-conquest** strategy game (RISK-flavored) played on real
+geography, powered by the [MapJSON](https://mapjson.com) API. Buildless static
+site — plain HTML + ES modules, with `d3` and `topojson-client` from a CDN.
+
+### ▶ Play: https://piwodlaiwo.github.io/atlas-at-war/
+
+You (blue) versus two AI players (Crimson, Verdant) for control of Europe.
 
 ## Run locally
 
@@ -11,25 +15,36 @@ python3 -m http.server 8080
 # open http://localhost:8080
 ```
 
+## How it plays
+
+- **Deal:** every territory is handed out, and each player starts with the same
+  total armies (scattered), so openings are fair.
+- **Reinforce:** each turn you get armies based on how much territory you hold
+  (~1 per 3 lands, min 3), plus a bonus for controlling an entire region.
+- **Attack:** RISK dice — click one of your lands, then an adjacent enemy. Toggle
+  **⚡ Blitz** to launch a full assault in one click.
+- **Fortify:** once per turn, march a stack across your connected territory.
+- **Supply lines:** strand a single enemy land away from their main force and it's
+  cut off (⚠) — it can't reinforce and loses a unit each turn.
+- **Bounty missions:** a hidden side-objective for a bonus (optional).
+- **Win:** last player standing.
+
 ## How the board is built
 
-`js/board.js` fetches world countries from the MapJSON API and:
+`js/board.js` fetches Europe's countries from the MapJSON API and:
 
-- keeps **large mainland countries** as playable territories (area ≥ `AREA_THRESHOLD`,
-  has land borders, not an island),
-- folds aliased slivers into a parent (Western Sahara → Morocco),
-- builds an adjacency graph from the `borders` property plus curated `SEA_ROUTES`,
-- keeps only the **largest connected component** so the board is always winnable;
-  everything else still renders as neutral land.
+- groups them into ~20 chunky **territories** (see `TERRITORIES` in `js/config.js`
+  — e.g. Iberia = Spain + Portugal, Baltics = Estonia + Latvia + Lithuania),
+- **dissolves** each group's member outlines into one shape (`topojson.merge`),
+- builds the adjacency graph from the `borders` property plus a curated sea route
+  (Scandinavia ↔ Denmark, the Øresund),
+- groups territories into five regions (using the `subregion` property) for hold
+  bonuses.
 
-All tunable in `js/config.js` (`AREA_THRESHOLD`, `ISLAND_BLOCK`, `SEA_ROUTES`,
-`CONTINENT_BONUS`, `PLAYERS`).
+Everything is tunable in `js/config.js` (`TERRITORIES`, `SEA_ROUTES`,
+`REGION_BONUS`, `PLAYERS`).
 
-## Status
+## Tech
 
-- **Milestone 1 — board & render (current).** Loads the board, draws the world with
-  a random placeholder game state (owners + army badges) and the sea routes.
-- Next: dealing, reinforce/attack turn loop, dice combat, AI, economy (continent
-  bonuses / cards / bounties), supply lines, alliances, world events.
-
-Design spec lives outside the repo (planning doc).
+No build step. `index.html` loads ES modules directly; `d3` and `topojson-client`
+come from jsDelivr; the map data comes live from `api.mapjson.com`.
