@@ -6,8 +6,10 @@ import { currentPlayer, ownedIds, deployMany, attack, fortify, cutOffSet } from 
 const enemies = (g, me, id) => [...g.board.graph.get(id)].filter((n) => g.state.get(n).owner !== me);
 
 function bestAttack(g, me) {
+  const cut = cutOffSet(g);
   let best = null;
   for (const id of ownedIds(g, me)) {
+    if (cut.has(id)) continue;   // cut-off lands can't attack
     const s = g.state.get(id);
     if (s.armies < 2) continue;
     for (const n of g.board.graph.get(id)) {

@@ -145,7 +145,10 @@ export function canAttack(g, src, tgt) {
   if (g.phase !== "attack") return false;
   const me = currentPlayer(g).id;
   const s = g.state.get(src), t = g.state.get(tgt);
-  return !!s && !!t && s.owner === me && t.owner !== me && s.armies >= 2 && g.board.graph.get(src)?.has(tgt);
+  if (!s || !t || s.owner !== me || t.owner === me || s.armies < 2) return false;
+  if (!g.board.graph.get(src)?.has(tgt)) return false;
+  if (cutOffSet(g).has(src)) return false;   // cut-off (isolated) lands can't attack
+  return true;
 }
 
 export function attack(g, src, tgt) {
