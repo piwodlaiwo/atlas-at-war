@@ -9,7 +9,12 @@ import { currentPlayer, canAttack, canFortify, cutOffSet } from "./game.js";
 const colorOf = Object.fromEntries(PLAYERS.map((p) => [p.id, p.color]));
 const W = 960, H = 700;
 
-let svg, path, centroidCache, currentBoard = null;
+let svg, path, centroidCache, currentBoard = null, zoomBehavior;
+
+// Zoom controls (used by the on-map buttons); pinch/drag/wheel work via d3.zoom.
+export function zoomIn() { if (svg) svg.transition().duration(200).call(zoomBehavior.scaleBy, 1.6); }
+export function zoomOut() { if (svg) svg.transition().duration(200).call(zoomBehavior.scaleBy, 1 / 1.6); }
+export function resetZoom() { if (svg) svg.transition().duration(250).call(zoomBehavior.transform, d3.zoomIdentity); }
 
 export function drawMap(board, g, ctx) {
   if (currentBoard !== board) initMap(board);
@@ -95,8 +100,12 @@ function initMap(board) {
   const wrap = document.getElementById("map");
   wrap.innerHTML = "";
   svg = d3.select(wrap).append("svg")
-    .attr("viewBox", `0 0 ${W} ${H}`).style("width", "100%").style("height", "auto");
+    .attr("viewBox", `0 0 ${W} ${H}`).style("width", "100%").style("height", "auto")
+    .style("touch-action", "none"); // let d3.zoom own touch gestures (pinch/pan)
   svg.append("rect").attr("width", W).attr("height", H).attr("fill", COLORS.ocean);
+
+  // Everything drawable lives in one viewport group so pan/zoom transforms it together.
+  const viewport = svg.append("g").attr("class", "viewport");
 
   const projection = d3.geoNaturalEarth1().rotate(board.rotate).fitExtent([[10, 10], [W - 10, H - 10]], board.fitCollection);
   path = d3.geoPath(projection);
@@ -105,15 +114,21 @@ function initMap(board) {
   for (const id of board.playable) centroidCache.set(id, path.centroid(board.mergedById.get(id)));
 
   // Neutral context land (static).
-  svg.append("g").attr("class", "neutral").selectAll("path").data(board.neutralFeats).join("path")
+  viewport.append("g").attr("class", "neutral").selectAll("path").data(board.neutralFeats).join("path")
     .attr("d", path).attr("fill", COLORS.land).attr("stroke", COLORS.stroke)
     .attr("stroke-width", 0.5).attr("vector-effect", "non-scaling-stroke");
 
-  const sea = svg.append("g").attr("class", "sea");
-  svg.append("g").attr("class", "terr");
-  svg.append("g").attr("class", "warn");
-  svg.append("g").attr("class", "action"); // arrows/pulses
-  svg.append("g").attr("class", "badges"); // army badges on top so counts are never covered
+  const sea = viewport.append("g").attr("class", "sea");
+  viewport.append("g").attr("class", "terr");
+  viewport.append("g").attr("class", "warn");
+  viewport.append("g").attr("class", "action"); // arrows/pulses
+  viewport.append("g").attr("class", "badges"); // army badges on top so counts are never covered
+
+  // Pan / pinch / wheel zoom. A tap without drag still fires the path click.
+  zoomBehavior = d3.zoom().scaleExtent([1, 8])
+    .extent([[0, 0], [W, H]]).translateExtent([[0, 0], [W, H]])
+    .on("zoom", (e) => viewport.attr("transform", e.transform));
+  svg.call(zoomBehavior).on("dblclick.zoom", null);
 
   for (const [a, b] of board.seaRoutes) {
     const [x1, y1] = centroidCache.get(a), [x2, y2] = centroidCache.get(b);

@@ -2,7 +2,7 @@
 // selectable delay so you can watch each move happen.
 
 import { loadBoard } from "./board.js";
-import { drawMap } from "./render.js";
+import { drawMap, zoomIn, zoomOut, resetZoom } from "./render.js";
 import { createGame, currentPlayer, ownedIds, reinforceOne, attack, canAttack, fortify, canFortify, endTurn } from "./game.js";
 import { aiStep } from "./ai.js";
 
@@ -47,6 +47,11 @@ const about = el("about");
 el("about-btn").addEventListener("click", () => { about.hidden = false; });
 el("about-close").addEventListener("click", () => { about.hidden = true; });
 about.addEventListener("click", (e) => { if (e.target === about) about.hidden = true; });
+
+// On-map zoom controls (pinch/drag/wheel also work directly on the map).
+el("zoom-in").addEventListener("click", zoomIn);
+el("zoom-out").addEventListener("click", zoomOut);
+el("zoom-reset").addEventListener("click", resetZoom);
 
 // Click the world-event card to dismiss it early.
 els.eventToast.addEventListener("click", () => { els.eventToast.classList.remove("show"); clearTimeout(eventTimer); });
