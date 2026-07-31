@@ -133,6 +133,12 @@ header .tag {
 .modal-card ul { font-size: 0.9rem; margin: 0 0 0.5rem 1.1rem; }
 .modal-card li { margin-bottom: 0.3rem; }
 .modal-card .modal-foot { font-size: 0.8rem; color: var(--muted); margin-top: 1rem; }
+.modal-card .fn-ref { color: #b0402f; font-weight: 600; }
+.modal-card sup.fn-ref { font-size: 0.55em; }
+.modal-card .footnote {
+  font-size: 0.72rem; color: var(--muted); line-height: 1.55;
+  border-top: 1px solid var(--border); margin-top: 0.9rem; padding-top: 0.7rem;
+}
 .modal-card a { color: var(--ink); }
 .modal-close {
   position: absolute; top: 0.6rem; right: 0.8rem; background: none; border: none;
