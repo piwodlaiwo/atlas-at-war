@@ -42,6 +42,22 @@ export function createGame(board) {
 
 export const currentPlayer = (g) => g.players[g.curIdx];
 
+// A deep copy of the mutable game state (board is shared, it's read-only), so
+// simulations can be played out without touching the real game.
+export function cloneState(g) {
+  const state = new Map();
+  for (const [id, c] of g.state) state.set(id, { owner: c.owner, armies: c.armies });
+  return {
+    board: g.board,
+    state,
+    players: g.players.map((p) => ({ ...p, bounty: p.bounty ? { ...p.bounty } : null })),
+    curIdx: g.curIdx, round: g.round, phase: g.phase, toDeploy: g.toDeploy,
+    selected: null, fortified: g.fortified,
+    lastBattle: null, lastAction: null, reinforceInfo: null,
+    winner: g.winner, log: [],
+  };
+}
+
 export function ownedIds(g, pid) {
   const out = [];
   for (const [id, c] of g.state) if (c.owner === pid) out.push(id);

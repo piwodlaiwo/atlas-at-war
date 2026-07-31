@@ -5,16 +5,18 @@ import { loadBoard } from "./board.js";
 import { drawMap } from "./render.js";
 import { createGame, currentPlayer, ownedIds, reinforceOne, attack, canAttack, fortify, canFortify, endTurn } from "./game.js";
 import { aiStep } from "./ai.js";
+import { predict } from "./predict.js";
 
 const el = (id) => document.getElementById(id);
 const els = {
   turn: el("turn"), endturn: el("endturn"), fortify: el("fortify"), blitz: el("blitz"),
-  counts: el("counts"), bounty: el("bounty"),
+  counts: el("counts"), bounty: el("bounty"), odds: el("odds"),
   battle: el("battle"), log: el("log"), banner: el("banner"), newgame: el("newgame"), status: el("status"),
 };
 
 const AI_STEP_MS = 820;
 let board, g, busy = false, mode = "attack", blitz = false;
+let odds = null, oddsKey = "";
 
 board = await loadBoard();
 newGame();
@@ -32,13 +34,29 @@ els.blitz.addEventListener("click", () => {
   blitz = !blitz; draw();
 });
 els.newgame.addEventListener("click", () => newGame());
+els.odds.addEventListener("click", () => { oddsKey = "manual" + Date.now(); computeOdds(); });
 
-function newGame() { g = createGame(board); busy = false; mode = "attack"; draw(); }
+function newGame() { g = createGame(board); busy = false; mode = "attack"; odds = null; oddsKey = ""; draw(); }
 
 function draw() {
   if (!(currentPlayer(g).human && g.phase === "attack")) mode = "attack";
   drawMap(board, g, { onClick, mode });
   drawHUD();
+  maybeOdds();
+}
+
+// Recompute win odds once per turn (only on your turn, so it never runs mid-AI-animation),
+// asynchronously so the ~140 simulated playouts don't block the paint.
+function computeOdds() {
+  odds = null; drawHUD();
+  setTimeout(() => { odds = predict(g, 140); drawHUD(); }, 0);
+}
+function maybeOdds() {
+  if (g.phase === "over") { if (oddsKey !== "over") { oddsKey = "over"; computeOdds(); } return; }
+  if (!(currentPlayer(g).human && g.phase === "deploy")) return;
+  const key = `${g.round}:${g.curIdx}`;
+  if (key === oddsKey) return;
+  oddsKey = key; computeOdds();
 }
 
 function onClick(terr) {
@@ -152,6 +170,13 @@ function drawHUD() {
       <span class="dot" style="background:${p.color}"></span>${p.name}
       <span class="nums">${terr}⬣ ${armies}⚔</span></div>`;
   }).join("");
+
+  if (odds) {
+    els.odds.innerHTML = `<span class="lbl">Win chance ↻</span> ` +
+      g.players.map((p) => `<span class="oc" style="color:${p.color}">${p.name} ${odds[p.id]}%</span>`).join("");
+  } else {
+    els.odds.innerHTML = `<span class="lbl">Win chance</span> <span class="dim">estimating…</span>`;
+  }
 
   const b = g.lastBattle;
   els.battle.textContent = b
