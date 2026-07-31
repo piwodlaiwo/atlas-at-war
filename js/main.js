@@ -82,7 +82,7 @@ function showEventIfNew() {
     `<div class="et-dismiss">click to dismiss</div>`;
   els.eventToast.classList.add("show");
   clearTimeout(eventTimer);
-  eventTimer = setTimeout(() => els.eventToast.classList.remove("show"), 6000);
+  eventTimer = setTimeout(() => els.eventToast.classList.remove("show"), 8000);
 }
 
 function onClick(terr) {
@@ -118,7 +118,7 @@ function runAI() {
       if (myGen !== gen) return;
       const before = g.event;
       endTurn(g); draw();                                   // may fire a world event
-      const delay = g.event !== before ? 3000 : Math.round(stepMs() * 0.7); // pause to read the event
+      const delay = g.event !== before ? 4200 : Math.round(stepMs() * 0.7); // pause to read the event
       setTimeout(() => { if (myGen === gen) runAI(); }, delay);
     }, Math.round(stepMs() * 0.7));
   };

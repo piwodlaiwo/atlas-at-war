@@ -14,15 +14,21 @@ const EVENTS = [
     return { title: "Golden Age", impact: `Holding all of ${region} pays double this round.` };
   },
   (g) => {
-    const id = rand(playableIds(g)); const c = g.state.get(id);
-    const lost = Math.floor(c.armies / 2); c.armies = Math.max(1, c.armies - lost);
+    const cands = playableIds(g).filter((id) => g.state.get(id).armies >= 2);
+    if (!cands.length) return { title: "Unrest", impact: "Grumbling in the ranks, but the thin garrisons hold." };
+    const id = rand(cands); const c = g.state.get(id);
+    const lost = Math.min(c.armies - 1, Math.max(1, Math.floor(c.armies / 2)));
+    c.armies -= lost;
     return { title: "Unrest", impact: `${g.board.nameOf(id)} loses ${lost} ${lost === 1 ? "army" : "armies"} to revolt.` };
   },
   (g) => { const id = rand(playableIds(g)); g.state.get(id).armies += 3; return { title: "Mustering", impact: `Reinforcements gather in ${g.board.nameOf(id)} (+3).` }; },
   (g) => {
     let big = null;
     for (const id of playableIds(g)) if (!big || g.state.get(id).armies > g.state.get(big).armies) big = id;
-    const c = g.state.get(big); const lost = Math.floor(c.armies / 3); c.armies = Math.max(1, c.armies - lost);
+    const c = g.state.get(big);
+    if (c.armies < 2) return { title: "Plague", impact: "A sickness spreads, but no host is large enough to matter." };
+    const lost = Math.min(c.armies - 1, Math.max(1, Math.floor(c.armies / 3)));
+    c.armies -= lost;
     return { title: "Plague", impact: `The great host in ${g.board.nameOf(big)} is struck (−${lost}).` };
   },
   () => ({ title: "Uneasy Peace", impact: "The continent holds its breath — nothing happens this round." }),
