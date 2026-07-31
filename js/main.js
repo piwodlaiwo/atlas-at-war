@@ -80,7 +80,7 @@ function showEventIfNew() {
     `<div class="et-dismiss">click to dismiss</div>`;
   els.eventToast.classList.add("show");
   clearTimeout(eventTimer);
-  eventTimer = setTimeout(() => els.eventToast.classList.remove("show"), 8000);
+  eventTimer = setTimeout(() => els.eventToast.classList.remove("show"), 6000);
 }
 
 function onClick(terr) {
