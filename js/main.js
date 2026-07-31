@@ -48,6 +48,9 @@ el("about-btn").addEventListener("click", () => { about.hidden = false; });
 el("about-close").addEventListener("click", () => { about.hidden = true; });
 about.addEventListener("click", (e) => { if (e.target === about) about.hidden = true; });
 
+// Click the world-event card to dismiss it early.
+els.eventToast.addEventListener("click", () => { els.eventToast.classList.remove("show"); clearTimeout(eventTimer); });
+
 async function newGame() {
   gen++;             // invalidate any in-flight AI loop from the previous game
   busy = false;
@@ -75,10 +78,11 @@ function showEventIfNew() {
   els.eventToast.innerHTML =
     `<div class="et-tag">🌍 World event · round ${g.event.round}</div>` +
     `<div class="et-title">${g.event.title}</div>` +
-    `<div class="et-impact">${g.event.impact}</div>`;
+    `<div class="et-impact">${g.event.impact}</div>` +
+    `<div class="et-dismiss">click to dismiss</div>`;
   els.eventToast.classList.add("show");
   clearTimeout(eventTimer);
-  eventTimer = setTimeout(() => els.eventToast.classList.remove("show"), 3200);
+  eventTimer = setTimeout(() => els.eventToast.classList.remove("show"), 6000);
 }
 
 function onClick(terr) {
