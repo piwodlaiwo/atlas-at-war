@@ -26,6 +26,7 @@ const stepMs = () => SPEEDS[speedIdx].ms;
 const CONTINENTS = ["europe", "africa", "americas"];
 let board, g, busy = false, mode = "attack";
 let shownEventId = null, eventTimer = null;
+let gen = 0; // bumped on New Game so stale AI timers from the old game abort
 
 board = await loadBoard("europe");
 g = createGame(board); draw();
@@ -48,11 +49,13 @@ el("about-close").addEventListener("click", () => { about.hidden = true; });
 about.addEventListener("click", (e) => { if (e.target === about) about.hidden = true; });
 
 async function newGame() {
+  gen++;             // invalidate any in-flight AI loop from the previous game
+  busy = false;
   let key = els.continent.value;
   if (key === "random") key = CONTINENTS[Math.floor(Math.random() * CONTINENTS.length)];
   board = await loadBoard(key);
   g = createGame(board);
-  busy = false; mode = "attack"; shownEventId = null;
+  mode = "attack"; shownEventId = null;
   els.eventToast.classList.remove("show");
   els.tag.textContent = `conquer ${board.mapName.toLowerCase()} · powered by mapjson`;
   draw();
@@ -99,20 +102,23 @@ function onClick(terr) {
 }
 
 function runAI() {
+  const myGen = gen;
   if (g.phase === "over") { busy = false; draw(); return; }
   if (currentPlayer(g).human) { busy = false; draw(); return; }
   busy = true; draw();
   const tick = () => {
+    if (myGen !== gen) return;                              // aborted by New Game
     const acted = aiStep(g); draw();
     if (acted) { setTimeout(tick, stepMs()); return; }
     setTimeout(() => {
+      if (myGen !== gen) return;
       const before = g.event;
       endTurn(g); draw();                                   // may fire a world event
       const delay = g.event !== before ? 3000 : Math.round(stepMs() * 0.7); // pause to read the event
-      setTimeout(runAI, delay);
+      setTimeout(() => { if (myGen === gen) runAI(); }, delay);
     }, Math.round(stepMs() * 0.7));
   };
-  setTimeout(tick, Math.round(stepMs() * 0.6));
+  setTimeout(() => { if (myGen === gen) tick(); }, Math.round(stepMs() * 0.6));
 }
 
 // ── HUD ──────────────────────────────────────────────────────────────
