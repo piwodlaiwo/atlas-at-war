@@ -112,8 +112,8 @@ function initMap(board) {
   const sea = svg.append("g").attr("class", "sea");
   svg.append("g").attr("class", "terr");
   svg.append("g").attr("class", "warn");
-  svg.append("g").attr("class", "badges");
-  svg.append("g").attr("class", "action"); // arrows/pulses on top
+  svg.append("g").attr("class", "action"); // arrows/pulses
+  svg.append("g").attr("class", "badges"); // army badges on top so counts are never covered
 
   for (const [a, b] of board.seaRoutes) {
     const [x1, y1] = centroidCache.get(a), [x2, y2] = centroidCache.get(b);

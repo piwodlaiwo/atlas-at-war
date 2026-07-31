@@ -107,7 +107,7 @@ export function reinforcementBreakdown(g, pid) {
     if (list.every((id) => ownedSet.has(id))) regions.push({ region: r, bonus: REGION_BONUS[r] || 0 });
   }
   const regionTotal = regions.reduce((s, x) => s + x.bonus, 0);
-  return { base, regions, total: base + regionTotal };
+  return { base, lands: owned.length, regions, total: base + regionTotal };
 }
 
 export const calcReinforcements = (g, pid) => reinforcementBreakdown(g, pid).total;
@@ -131,7 +131,7 @@ function startTurn(g) {
     if (starved) log(g, `${p.name}: ${starved} cut-off ${starved === 1 ? "territory" : "territories"} lost a unit`);
   }
   const bd = reinforcementBreakdown(g, p.id);
-  g.reinforceInfo = { base: bd.base, regions: bd.regions, bounty: p.pendingBonus || 0 };
+  g.reinforceInfo = { base: bd.base, lands: bd.lands, regions: bd.regions, bounty: p.pendingBonus || 0 };
   g.toDeploy = bd.total + (p.pendingBonus || 0);
   p.pendingBonus = 0;
   log(g, `${p.name}: reinforce ${g.toDeploy}`);

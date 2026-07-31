@@ -1,22 +1,28 @@
-// Milestone 4: board + engine + AI + economy (cards & bounties), wired to the HUD.
-// AI turns are stepped with delays so you can watch each move happen.
+// Wires the board, engine, AI, and HUD together. AI turns are stepped with a
+// selectable delay so you can watch each move happen.
 
 import { loadBoard } from "./board.js";
 import { drawMap } from "./render.js";
 import { createGame, currentPlayer, ownedIds, reinforceOne, attack, canAttack, fortify, canFortify, endTurn } from "./game.js";
 import { aiStep } from "./ai.js";
-import { predict } from "./predict.js";
 
 const el = (id) => document.getElementById(id);
 const els = {
-  turn: el("turn"), endturn: el("endturn"), fortify: el("fortify"), blitz: el("blitz"),
-  counts: el("counts"), bounty: el("bounty"), odds: el("odds"),
+  turn: el("turn"), endturn: el("endturn"), fortify: el("fortify"), speed: el("speed"),
+  counts: el("counts"), bounty: el("bounty"),
   battle: el("battle"), log: el("log"), banner: el("banner"), newgame: el("newgame"), status: el("status"),
 };
 
-const AI_STEP_MS = 820;
-let board, g, busy = false, mode = "attack", blitz = false;
-let odds = null, oddsKey = "";
+// AI pacing: Slow / Medium / Fast (one button cycles through them).
+const SPEEDS = [
+  { name: "Slow", ms: 1500 },
+  { name: "Medium", ms: 800 },
+  { name: "Fast", ms: 250 },
+];
+let speedIdx = 1;
+const stepMs = () => SPEEDS[speedIdx].ms;
+
+let board, g, busy = false, mode = "attack";
 
 board = await loadBoard();
 newGame();
@@ -29,34 +35,15 @@ els.fortify.addEventListener("click", () => {
   if (busy || g.phase !== "attack" || !currentPlayer(g).human || g.fortified) return;
   mode = mode === "fortify" ? "attack" : "fortify"; g.selected = null; draw();
 });
-els.blitz.addEventListener("click", () => {
-  if (busy || g.phase !== "attack" || !currentPlayer(g).human) return;
-  blitz = !blitz; draw();
-});
+els.speed.addEventListener("click", () => { speedIdx = (speedIdx + 1) % SPEEDS.length; draw(); });
 els.newgame.addEventListener("click", () => newGame());
-els.odds.addEventListener("click", () => { oddsKey = "manual" + Date.now(); computeOdds(); });
 
-function newGame() { g = createGame(board); busy = false; mode = "attack"; odds = null; oddsKey = ""; draw(); }
+function newGame() { g = createGame(board); busy = false; mode = "attack"; draw(); }
 
 function draw() {
   if (!(currentPlayer(g).human && g.phase === "attack")) mode = "attack";
   drawMap(board, g, { onClick, mode });
   drawHUD();
-  maybeOdds();
-}
-
-// Recompute win odds once per turn (only on your turn, so it never runs mid-AI-animation),
-// asynchronously so the ~140 simulated playouts don't block the paint.
-function computeOdds() {
-  odds = null; drawHUD();
-  setTimeout(() => { odds = predict(g, 140); drawHUD(); }, 0);
-}
-function maybeOdds() {
-  if (g.phase === "over") { if (oddsKey !== "over") { oddsKey = "over"; computeOdds(); } return; }
-  if (!(currentPlayer(g).human && g.phase === "deploy")) return;
-  const key = `${g.round}:${g.curIdx}`;
-  if (key === oddsKey) return;
-  oddsKey = key; computeOdds();
 }
 
 function onClick(terr) {
@@ -76,21 +63,7 @@ function onClick(terr) {
   if (!g.selected) { if (c.owner === me && c.armies >= 2) { g.selected = terr; draw(); } return; }
   if (terr === g.selected) { g.selected = null; draw(); return; }
   if (c.owner === me) { g.selected = c.armies >= 2 ? terr : null; draw(); return; }
-  if (canAttack(g, g.selected, terr)) {
-    if (blitz) humanAssault(g.selected, terr);
-    else { attack(g, g.selected, terr); draw(); }
-  }
-}
-
-// Blitz: auto-roll a full assault on one target (animated), until captured or stalled.
-function humanAssault(src, tgt) {
-  busy = true; draw();
-  const tick = () => {
-    if (g.phase === "over" || !canAttack(g, src, tgt)) { busy = false; draw(); return; }
-    attack(g, src, tgt); draw();
-    setTimeout(tick, 430);
-  };
-  setTimeout(tick, 120);
+  if (canAttack(g, g.selected, terr)) { attack(g, g.selected, terr); draw(); }
 }
 
 function runAI() {
@@ -99,10 +72,10 @@ function runAI() {
   busy = true; draw();
   const tick = () => {
     const acted = aiStep(g); draw();
-    if (acted) setTimeout(tick, AI_STEP_MS);
-    else setTimeout(() => { endTurn(g); draw(); runAI(); }, 550);
+    if (acted) setTimeout(tick, stepMs());
+    else setTimeout(() => { endTurn(g); draw(); runAI(); }, Math.round(stepMs() * 0.7));
   };
-  setTimeout(tick, 450);
+  setTimeout(tick, Math.round(stepMs() * 0.6));
 }
 
 // ── HUD ──────────────────────────────────────────────────────────────
@@ -113,7 +86,7 @@ function drawHUD() {
   if (g.phase === "over") {
     els.banner.hidden = false;
     const w = g.players.find((p) => p.id === g.winner);
-    els.banner.textContent = w ? `${w.name} win${w.human ? "" : "s"} — Europe conquered` : "Game over";
+    els.banner.textContent = w ? `${w.name} win${w.human ? "" : "s"} — the map is conquered` : "Game over";
     els.banner.style.background = w ? w.color : "var(--ink)";
     els.turn.innerHTML = "";
   } else {
@@ -129,11 +102,12 @@ function drawHUD() {
       else instr = "is moving…";
     }
     else if (g.phase === "deploy") {
-      const info = g.reinforceInfo || { base: g.toDeploy, regions: [], bounty: 0 };
-      const parts = [`${info.base} base`,
-        ...info.regions.map((r) => `+${r.bonus} ${r.region}`),
-        ...(info.bounty ? [`+${info.bounty} bounty`] : [])];
-      instr = `reinforce — place <strong>${g.toDeploy}</strong> ${g.toDeploy === 1 ? "army" : "armies"} <span class="status">(${parts.join(", ")})</span>`;
+      const info = g.reinforceInfo || { base: g.toDeploy, lands: 0, regions: [], bounty: 0 };
+      const parts = [`<strong>${info.base}</strong> base (${info.lands} lands ÷ 3, min 3)`,
+        ...info.regions.map((r) => `<strong>+${r.bonus}</strong> for holding ${r.region}`),
+        ...(info.bounty ? [`<strong>+${info.bounty}</strong> bounty`] : [])];
+      instr = `reinforce — place <strong>${g.toDeploy}</strong> ${g.toDeploy === 1 ? "army" : "armies"} on your lands`
+        + `<div class="hint2">= ${parts.join(" &nbsp;+&nbsp; ")}</div>`;
     }
     else if (mode === "fortify") instr = g.selected ? "click a connected land to send armies" : "pick a land to move armies from";
     else instr = g.selected ? "pick an adjacent enemy to attack" : "select a land to attack from, or end turn";
@@ -144,9 +118,7 @@ function drawHUD() {
   els.endturn.disabled = !human;
   els.fortify.disabled = !(human && !g.fortified);
   els.fortify.textContent = g.fortified ? "Move used" : (mode === "fortify" ? "Moving… (cancel)" : "Move armies");
-  els.blitz.disabled = !human;
-  els.blitz.textContent = `⚡ Blitz: ${blitz ? "on" : "off"}`;
-  els.blitz.classList.toggle("active", blitz);
+  els.speed.textContent = `Speed: ${SPEEDS[speedIdx].name}`;
 
   // Your bounty — a hidden bonus mission (only yours is shown).
   if (you.bounty) {
@@ -158,7 +130,7 @@ function drawHUD() {
     }
     els.bounty.innerHTML =
       `🎯 <strong>Bonus mission:</strong> ${bn.text}${tag} → <strong>+${bn.reward} armies</strong>` +
-      `<div class="hint2">Optional reward. You still win by conquering all of Europe.</div>`;
+      `<div class="hint2">Optional reward. You still win by conquering the whole map.</div>`;
   } else {
     els.bounty.innerHTML = "";
   }
@@ -170,13 +142,6 @@ function drawHUD() {
       <span class="dot" style="background:${p.color}"></span>${p.name}
       <span class="nums">${terr}⬣ ${armies}⚔</span></div>`;
   }).join("");
-
-  if (odds) {
-    els.odds.innerHTML = `<span class="lbl">Win chance ↻</span> ` +
-      g.players.map((p) => `<span class="oc" style="color:${p.color}">${p.name} ${odds[p.id]}%</span>`).join("");
-  } else {
-    els.odds.innerHTML = `<span class="lbl">Win chance</span> <span class="dim">estimating…</span>`;
-  }
 
   const b = g.lastBattle;
   els.battle.textContent = b
