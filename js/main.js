@@ -10,7 +10,8 @@ const el = (id) => document.getElementById(id);
 const els = {
   turn: el("turn"), endturn: el("endturn"), fortify: el("fortify"), speed: el("speed"),
   counts: el("counts"), bounty: el("bounty"), eventToast: el("event-toast"),
-  battle: el("battle"), log: el("log"), banner: el("banner"), newgame: el("newgame"), status: el("status"),
+  battle: el("battle"), log: el("log"), banner: el("banner"), newgame: el("newgame"),
+  status: el("status"), tag: el("tag"), continent: el("continent"),
 };
 
 // AI pacing: Slow / Medium / Fast (one button cycles through them).
@@ -22,11 +23,12 @@ const SPEEDS = [
 let speedIdx = 1;
 const stepMs = () => SPEEDS[speedIdx].ms;
 
+const CONTINENTS = ["europe", "africa", "americas"];
 let board, g, busy = false, mode = "attack";
 let shownEventId = null, eventTimer = null;
 
-board = await loadBoard();
-newGame();
+board = await loadBoard("europe");
+g = createGame(board); draw();
 
 els.endturn.addEventListener("click", () => {
   if (busy || g.phase !== "attack" || !currentPlayer(g).human) return;
@@ -45,7 +47,16 @@ el("about-btn").addEventListener("click", () => { about.hidden = false; });
 el("about-close").addEventListener("click", () => { about.hidden = true; });
 about.addEventListener("click", (e) => { if (e.target === about) about.hidden = true; });
 
-function newGame() { g = createGame(board); busy = false; mode = "attack"; shownEventId = null; els.eventToast.classList.remove("show"); draw(); }
+async function newGame() {
+  let key = els.continent.value;
+  if (key === "random") key = CONTINENTS[Math.floor(Math.random() * CONTINENTS.length)];
+  board = await loadBoard(key);
+  g = createGame(board);
+  busy = false; mode = "attack"; shownEventId = null;
+  els.eventToast.classList.remove("show");
+  els.tag.textContent = `conquer ${board.mapName.toLowerCase()} · powered by mapjson`;
+  draw();
+}
 
 function draw() {
   if (!(currentPlayer(g).human && g.phase === "attack")) mode = "attack";

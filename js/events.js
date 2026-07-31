@@ -1,10 +1,6 @@
 // World events: one fires at the start of each new round (from round 2 on). Some hit
 // immediately (armies change), some set a modifier for the round (reinforcements).
 
-const REGION_LABEL = {
-  West: "Western Europe", Mediterranean: "the Mediterranean",
-  Balkans: "the Balkans", East: "Eastern Europe", North: "the North",
-};
 const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const playableIds = (g) => [...g.board.playable];
 
@@ -13,9 +9,9 @@ const EVENTS = [
   (g) => { g.roundMods.reinforceDelta = 2; return { title: "Bountiful Harvest", impact: "Everyone gets +2 reinforcements this round." }; },
   (g) => { g.roundMods.reinforceDelta = -2; return { title: "Harsh Winter", impact: "Reinforcements are cut by 2 this round." }; },
   (g) => {
-    const region = rand(Object.keys(REGION_LABEL));
+    const region = rand(g.board.regions);
     g.roundMods.doubleRegion = region;
-    return { title: "Golden Age", impact: `Holding all of ${REGION_LABEL[region]} pays double this round.` };
+    return { title: "Golden Age", impact: `Holding all of ${region} pays double this round.` };
   },
   (g) => {
     const id = rand(playableIds(g)); const c = g.state.get(id);

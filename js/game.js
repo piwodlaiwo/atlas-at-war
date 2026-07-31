@@ -1,6 +1,6 @@
 // Game engine: state, dealing, reinforcements, dice attacks, turn advance, win check.
 
-import { PLAYERS, REGION_BONUS } from "./config.js";
+import { PLAYERS } from "./config.js";
 import { resolveBattle } from "./combat.js";
 import { assignBounty, bountyDone } from "./economy.js";
 import { fireEvent } from "./events.js";
@@ -38,7 +38,7 @@ export function createGame(board) {
     winner: null,
     log: [],
   };
-  for (const p of g.players) p.bounty = assignBounty(g.players, p.id, board.playable.size);
+  for (const p of g.players) p.bounty = assignBounty(g.players, p.id, board.playable.size, board.regions);
   startTurn(g);
   return g;
 }
@@ -108,7 +108,7 @@ export function reinforcementBreakdown(g, pid) {
   const regions = [];
   for (const [r, list] of Object.entries(members)) {
     if (list.every((id) => ownedSet.has(id))) {
-      let bonus = REGION_BONUS[r] || 0;
+      let bonus = g.board.regionBonus[r] || 0;
       if (g.roundMods && g.roundMods.doubleRegion === r) bonus *= 2; // Golden Age
       regions.push({ region: r, bonus });
     }
@@ -231,7 +231,7 @@ export function endTurn(g) {
   if (p.bounty && bountyDone(p.bounty, p.id, g.board, g.state, g.players)) {
     p.pendingBonus += p.bounty.reward;
     log(g, `${p.name} completed a bounty: ${p.bounty.text} (+${p.bounty.reward})`);
-    p.bounty = assignBounty(g.players, p.id, g.board.playable.size);
+    p.bounty = assignBounty(g.players, p.id, g.board.playable.size, g.board.regions);
   }
   updateAlive(g);
   const alive = g.players.filter((q) => q.alive);

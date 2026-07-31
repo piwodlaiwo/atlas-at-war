@@ -9,10 +9,10 @@ import { currentPlayer, canAttack, canFortify, cutOffSet } from "./game.js";
 const colorOf = Object.fromEntries(PLAYERS.map((p) => [p.id, p.color]));
 const W = 960, H = 700;
 
-let svg, path, centroidCache, initialized = false;
+let svg, path, centroidCache, currentBoard = null;
 
 export function drawMap(board, g, ctx) {
-  if (!initialized) initMap(board);
+  if (currentBoard !== board) initMap(board);
 
   const sel = g.selected;
   const cut = cutOffSet(g);
@@ -127,5 +127,5 @@ function initMap(board) {
     for (const [x, y] of [[x1, y1], [x2, y2]])
       sea.append("circle").attr("cx", x).attr("cy", y).attr("r", 2.4).attr("fill", COLORS.sea);
   }
-  initialized = true;
+  currentBoard = board;
 }

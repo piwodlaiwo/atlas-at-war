@@ -1,23 +1,17 @@
 // Bounty cards: hidden side-objectives that grant a one-off army reward when completed.
 // (Reinforcement/trade cards were removed for now.)
 
-const REGION_LABEL = {
-  West: "Western Europe", Mediterranean: "the Mediterranean",
-  Balkans: "the Balkans", East: "Eastern Europe", North: "the North",
-};
-
 // Assigned to a player; completing grants `reward` armies, then a new bounty is drawn.
-export function assignBounty(players, playerId, territoryCount) {
+export function assignBounty(players, playerId, territoryCount, regions) {
   const opponents = players.filter((p) => p.id !== playerId);
-  const regions = Object.keys(REGION_LABEL);
   const r = Math.random();
   if (r < 0.34) {
-    const n = Math.min(territoryCount, 10 + Math.floor(Math.random() * 4));
+    const n = Math.min(territoryCount, Math.round(territoryCount * 0.55));
     return { kind: "own", n, reward: 5, text: `Hold ${n} of ${territoryCount} territories` };
   }
-  if (r < 0.67) {
+  if (r < 0.67 && regions && regions.length) {
     const region = regions[Math.floor(Math.random() * regions.length)];
-    return { kind: "region", region, reward: 4, text: `Own every territory in ${REGION_LABEL[region]}` };
+    return { kind: "region", region, reward: 4, text: `Own every territory in ${region}` };
   }
   const opp = opponents[Math.floor(Math.random() * opponents.length)];
   return { kind: "eliminate", target: opp.id, reward: 6, text: `Wipe ${opp.name} off the map` };

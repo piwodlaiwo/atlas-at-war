@@ -54,6 +54,15 @@ header .tag {
 }
 .turn { font-size: 15px; font-weight: 500; min-height: 2.6em; }
 .turn .who { font-weight: 700; }
+.turn .hint2 { font-size: 11px; font-weight: 400; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+
+.newgame-row { display: flex; gap: 0.5rem; }
+.newgame-row .btn { flex: 1; }
+.select {
+  font-family: ui-monospace, monospace; font-size: 12px; padding: 0.5rem;
+  border: 1.5px solid var(--border); border-radius: 6px; background: var(--panel);
+  color: var(--ink); cursor: pointer;
+}
 
 .btn {
   font-family: ui-monospace, monospace; font-size: 12px; letter-spacing: 0.06em;

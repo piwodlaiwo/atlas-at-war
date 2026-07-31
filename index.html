@@ -13,7 +13,7 @@
 <body>
   <header>
     <h1>Atlas at War</h1>
-    <span class="tag">conquer europe · powered by mapjson</span>
+    <span class="tag" id="tag">conquer europe · powered by mapjson</span>
     <button id="about-btn" class="btn ghost small header-right">About</button>
   </header>
 
@@ -77,7 +77,15 @@
       <div id="counts" class="counts"></div>
       <div id="battle" class="battle"></div>
       <div class="log-wrap"><div id="log" class="log"></div></div>
-      <button id="newgame" class="btn ghost">New game</button>
+      <div class="newgame-row">
+        <select id="continent" class="select" title="Which continent to play on">
+          <option value="europe">Europe</option>
+          <option value="africa">Africa</option>
+          <option value="americas">Americas</option>
+          <option value="random">Random</option>
+        </select>
+        <button id="newgame" class="btn ghost">New game</button>
+      </div>
       <div id="status" class="status"></div>
     </aside>
   </main>
