@@ -39,6 +39,12 @@ els.fortify.addEventListener("click", () => {
 els.speed.addEventListener("click", () => { speedIdx = (speedIdx + 1) % SPEEDS.length; draw(); });
 els.newgame.addEventListener("click", () => newGame());
 
+// About overlay
+const about = el("about");
+el("about-btn").addEventListener("click", () => { about.hidden = false; });
+el("about-close").addEventListener("click", () => { about.hidden = true; });
+about.addEventListener("click", (e) => { if (e.target === about) about.hidden = true; });
+
 function newGame() { g = createGame(board); busy = false; mode = "attack"; shownEventId = null; els.eventToast.classList.remove("show"); draw(); }
 
 function draw() {
