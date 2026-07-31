@@ -3,6 +3,7 @@
 import { PLAYERS, REGION_BONUS } from "./config.js";
 import { resolveBattle } from "./combat.js";
 import { assignBounty, bountyDone } from "./economy.js";
+import { fireEvent } from "./events.js";
 
 export function createGame(board) {
   const state = new Map();
@@ -32,6 +33,8 @@ export function createGame(board) {
     lastBattle: null,
     lastAction: null,    // {type:"attack"|"fortify"|"deploy", by, ...} for animation/narration
     reinforceInfo: null, // breakdown of this turn's reinforcements (for the HUD)
+    roundMods: { reinforceDelta: 0, doubleRegion: null }, // active world-event effects
+    event: null,         // current world event {title, impact, round, id}
     winner: null,
     log: [],
   };
@@ -104,7 +107,11 @@ export function reinforcementBreakdown(g, pid) {
   }
   const regions = [];
   for (const [r, list] of Object.entries(members)) {
-    if (list.every((id) => ownedSet.has(id))) regions.push({ region: r, bonus: REGION_BONUS[r] || 0 });
+    if (list.every((id) => ownedSet.has(id))) {
+      let bonus = REGION_BONUS[r] || 0;
+      if (g.roundMods && g.roundMods.doubleRegion === r) bonus *= 2; // Golden Age
+      regions.push({ region: r, bonus });
+    }
   }
   const regionTotal = regions.reduce((s, x) => s + x.bonus, 0);
   return { base, lands: owned.length, regions, total: base + regionTotal };
@@ -131,8 +138,9 @@ function startTurn(g) {
     if (starved) log(g, `${p.name}: ${starved} cut-off ${starved === 1 ? "territory" : "territories"} lost a unit`);
   }
   const bd = reinforcementBreakdown(g, p.id);
-  g.reinforceInfo = { base: bd.base, lands: bd.lands, regions: bd.regions, bounty: p.pendingBonus || 0 };
-  g.toDeploy = bd.total + (p.pendingBonus || 0);
+  const eventDelta = g.roundMods ? g.roundMods.reinforceDelta : 0;
+  g.reinforceInfo = { base: bd.base, lands: bd.lands, regions: bd.regions, bounty: p.pendingBonus || 0, event: eventDelta };
+  g.toDeploy = Math.max(1, bd.total + (p.pendingBonus || 0) + eventDelta);
   p.pendingBonus = 0;
   log(g, `${p.name}: reinforce ${g.toDeploy}`);
 }
@@ -230,7 +238,7 @@ export function endTurn(g) {
   if (alive.length <= 1) { g.phase = "over"; g.winner = alive[0]?.id ?? null; return; }
   const prev = g.curIdx;
   do { g.curIdx = (g.curIdx + 1) % g.players.length; } while (!g.players[g.curIdx].alive);
-  if (g.curIdx <= prev) g.round++;
+  if (g.curIdx <= prev) { g.round++; const e = fireEvent(g); log(g, `🌍 ${e.title} — ${e.impact}`); }
   startTurn(g);
 }
 

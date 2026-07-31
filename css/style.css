@@ -30,11 +30,24 @@ header .tag {
   max-width: 1280px; margin: 0 auto; padding: 1rem 1.4rem 3rem;
 }
 .map-wrap {
-  flex: 1 1 auto; min-width: 0;
+  flex: 1 1 auto; min-width: 0; position: relative;
   border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
   background: var(--panel); line-height: 0;
 }
 .map-wrap svg { width: 100%; display: block; }
+
+.event-toast {
+  position: absolute; top: 12%; left: 50%; transform: translate(-50%, -8px) scale(0.98);
+  min-width: 240px; max-width: 70%; padding: 0.9rem 1.2rem; border-radius: 10px;
+  background: rgba(26,22,16,0.92); color: #f4ead2; text-align: center; line-height: 1.35;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35); pointer-events: none;
+  opacity: 0; transition: opacity 0.45s ease, transform 0.45s ease; z-index: 30;
+}
+.event-toast.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+.event-toast .et-tag { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: #c9a24a; margin-bottom: 0.3rem; }
+.event-toast .et-title { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.01em; }
+.event-toast .et-impact { font-size: 0.85rem; color: #d9ccae; margin-top: 0.25rem; }
 
 .hud {
   flex: 0 0 280px; display: flex; flex-direction: column; gap: 0.7rem;

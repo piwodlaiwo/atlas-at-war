@@ -9,7 +9,7 @@ import { aiStep } from "./ai.js";
 const el = (id) => document.getElementById(id);
 const els = {
   turn: el("turn"), endturn: el("endturn"), fortify: el("fortify"), speed: el("speed"),
-  counts: el("counts"), bounty: el("bounty"),
+  counts: el("counts"), bounty: el("bounty"), eventToast: el("event-toast"),
   battle: el("battle"), log: el("log"), banner: el("banner"), newgame: el("newgame"), status: el("status"),
 };
 
@@ -23,6 +23,7 @@ let speedIdx = 1;
 const stepMs = () => SPEEDS[speedIdx].ms;
 
 let board, g, busy = false, mode = "attack";
+let shownEventId = null, eventTimer = null;
 
 board = await loadBoard();
 newGame();
@@ -38,12 +39,26 @@ els.fortify.addEventListener("click", () => {
 els.speed.addEventListener("click", () => { speedIdx = (speedIdx + 1) % SPEEDS.length; draw(); });
 els.newgame.addEventListener("click", () => newGame());
 
-function newGame() { g = createGame(board); busy = false; mode = "attack"; draw(); }
+function newGame() { g = createGame(board); busy = false; mode = "attack"; shownEventId = null; els.eventToast.classList.remove("show"); draw(); }
 
 function draw() {
   if (!(currentPlayer(g).human && g.phase === "attack")) mode = "attack";
   drawMap(board, g, { onClick, mode });
   drawHUD();
+  showEventIfNew();
+}
+
+// Big card over the map when a new world event fires; auto-hides after a few seconds.
+function showEventIfNew() {
+  if (!g.event || g.event.id === shownEventId) return;
+  shownEventId = g.event.id;
+  els.eventToast.innerHTML =
+    `<div class="et-tag">🌍 World event · round ${g.event.round}</div>` +
+    `<div class="et-title">${g.event.title}</div>` +
+    `<div class="et-impact">${g.event.impact}</div>`;
+  els.eventToast.classList.add("show");
+  clearTimeout(eventTimer);
+  eventTimer = setTimeout(() => els.eventToast.classList.remove("show"), 3200);
 }
 
 function onClick(terr) {
@@ -72,8 +87,13 @@ function runAI() {
   busy = true; draw();
   const tick = () => {
     const acted = aiStep(g); draw();
-    if (acted) setTimeout(tick, stepMs());
-    else setTimeout(() => { endTurn(g); draw(); runAI(); }, Math.round(stepMs() * 0.7));
+    if (acted) { setTimeout(tick, stepMs()); return; }
+    setTimeout(() => {
+      const before = g.event;
+      endTurn(g); draw();                                   // may fire a world event
+      const delay = g.event !== before ? 3000 : Math.round(stepMs() * 0.7); // pause to read the event
+      setTimeout(runAI, delay);
+    }, Math.round(stepMs() * 0.7));
   };
   setTimeout(tick, Math.round(stepMs() * 0.6));
 }
@@ -105,7 +125,8 @@ function drawHUD() {
       const info = g.reinforceInfo || { base: g.toDeploy, lands: 0, regions: [], bounty: 0 };
       const parts = [`<strong>${info.base}</strong> base (${info.lands} lands ÷ 3, min 3)`,
         ...info.regions.map((r) => `<strong>+${r.bonus}</strong> for holding ${r.region}`),
-        ...(info.bounty ? [`<strong>+${info.bounty}</strong> bounty`] : [])];
+        ...(info.bounty ? [`<strong>+${info.bounty}</strong> bounty`] : []),
+        ...(info.event ? [`<strong>${info.event > 0 ? "+" : ""}${info.event}</strong> world event`] : [])];
       instr = `reinforce — place <strong>${g.toDeploy}</strong> ${g.toDeploy === 1 ? "army" : "armies"} on your lands`
         + `<div class="hint2">= ${parts.join(" &nbsp;+&nbsp; ")}</div>`;
     }
