@@ -40,6 +40,7 @@ els.fortify.addEventListener("click", () => {
 });
 els.speed.addEventListener("click", () => { speedIdx = (speedIdx + 1) % SPEEDS.length; draw(); });
 els.newgame.addEventListener("click", () => newGame());
+els.continent.addEventListener("change", () => newGame()); // switching continent starts a new game
 
 // About overlay
 const about = el("about");

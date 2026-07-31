@@ -73,22 +73,6 @@ export const MAPS = {
     ],
   },
 
-  namerica: {
-    name: "North America",
-    rotate: [100, 0],
-    regionBonus: { "Northern America": 3, "Central America": 4 },
-    seaRoutes: [],
-    territories: [
-      { id: "canada",     name: "Canada",        region: "Northern America", members: ["CA"] },
-      { id: "usa",        name: "United States", region: "Northern America", members: ["US"] },
-      { id: "mexico",     name: "Mexico",        region: "Central America",  members: ["MX"] },
-      { id: "guatemala",  name: "Guatemala",     region: "Central America",  members: ["GT", "BZ"] },
-      { id: "honduras",   name: "Honduras",      region: "Central America",  members: ["HN", "SV"] },
-      { id: "nicaragua",  name: "Nicaragua",     region: "Central America",  members: ["NI"] },
-      { id: "costa_rica", name: "Costa Rica",    region: "Central America",  members: ["CR", "PA"] },
-    ],
-  },
-
   samerica: {
     name: "South America",
     rotate: [60, 0],
