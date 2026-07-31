@@ -98,7 +98,7 @@ function initMap(board) {
     .attr("viewBox", `0 0 ${W} ${H}`).style("width", "100%").style("height", "auto");
   svg.append("rect").attr("width", W).attr("height", H).attr("fill", COLORS.ocean);
 
-  const projection = d3.geoNaturalEarth1().rotate([-11, 0]).fitExtent([[10, 10], [W - 10, H - 10]], board.fitCollection);
+  const projection = d3.geoNaturalEarth1().rotate(board.rotate).fitExtent([[10, 10], [W - 10, H - 10]], board.fitCollection);
   path = d3.geoPath(projection);
 
   centroidCache = new Map();

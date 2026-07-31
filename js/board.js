@@ -68,7 +68,7 @@ export async function loadBoard(mapKey = DEFAULT_MAP) {
   const regions = [...new Set(territories.map((t) => t.region))];
 
   return {
-    mapKey, mapName: map.name, regionBonus: map.regionBonus, regions,
+    mapKey, mapName: map.name, regionBonus: map.regionBonus, regions, rotate: map.rotate || [-11, 0],
     playable, graph, seaRoutes, fitCollection, neutralFeats, mergedById,
     territoryOfIso: (iso) => isoToTerr.get(iso),
     nameOf: (id) => nameById.get(id) || id,

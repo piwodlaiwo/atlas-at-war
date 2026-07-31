@@ -23,7 +23,6 @@ const SPEEDS = [
 let speedIdx = 1;
 const stepMs = () => SPEEDS[speedIdx].ms;
 
-const CONTINENTS = ["europe", "africa", "americas"];
 let board, g, busy = false, mode = "attack";
 let shownEventId = null, eventTimer = null;
 let gen = 0; // bumped on New Game so stale AI timers from the old game abort
@@ -54,9 +53,7 @@ els.eventToast.addEventListener("click", () => { els.eventToast.classList.remove
 async function newGame() {
   gen++;             // invalidate any in-flight AI loop from the previous game
   busy = false;
-  let key = els.continent.value;
-  if (key === "random") key = CONTINENTS[Math.floor(Math.random() * CONTINENTS.length)];
-  board = await loadBoard(key);
+  board = await loadBoard(els.continent.value);
   g = createGame(board);
   mode = "attack"; shownEventId = null;
   els.eventToast.classList.remove("show");

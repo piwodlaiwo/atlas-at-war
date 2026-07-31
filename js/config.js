@@ -11,6 +11,7 @@ export const API_URL =
 export const MAPS = {
   europe: {
     name: "Europe",
+    rotate: [-11, 0],
     regionBonus: { "West": 4, "Mediterranean": 3, "Balkans": 3, "East": 5, "North": 4 },
     seaRoutes: [["SE", "DK"]],
     territories: [
@@ -39,6 +40,7 @@ export const MAPS = {
 
   africa: {
     name: "Africa",
+    rotate: [-18, 0],
     regionBonus: { "Northern Africa": 5, "Western Africa": 5, "Middle Africa": 5, "Eastern Africa": 5, "Southern Africa": 3 },
     seaRoutes: [],
     territories: [
@@ -71,26 +73,39 @@ export const MAPS = {
     ],
   },
 
-  americas: {
-    name: "the Americas",
-    regionBonus: { "Northern America": 2, "Central America": 3, "South America": 7 },
+  namerica: {
+    name: "North America",
+    rotate: [100, 0],
+    regionBonus: { "Northern America": 3, "Central America": 4 },
     seaRoutes: [],
     territories: [
-      { id: "canada",     name: "Canada",         region: "Northern America", members: ["CA"] },
-      { id: "usa",        name: "United States",  region: "Northern America", members: ["US"] },
-      { id: "mexico",     name: "Mexico",         region: "Central America",  members: ["MX"] },
-      { id: "guatemala",  name: "Guatemala",      region: "Central America",  members: ["GT", "BZ", "SV"] },
-      { id: "honduras",   name: "Honduras",       region: "Central America",  members: ["HN", "NI"] },
-      { id: "costa_rica", name: "Costa Rica",     region: "Central America",  members: ["CR", "PA"] },
-      { id: "colombia",   name: "Colombia",       region: "South America",    members: ["CO"] },
-      { id: "venezuela",  name: "Venezuela",      region: "South America",    members: ["VE"] },
-      { id: "guianas",    name: "Guianas",        region: "South America",    members: ["GY", "SR", "GF"] },
-      { id: "brazil",     name: "Brazil",         region: "South America",    members: ["BR"] },
-      { id: "peru",       name: "Peru & Ecuador", region: "South America",    members: ["PE", "EC"] },
-      { id: "bolivia",    name: "Bolivia",        region: "South America",    members: ["BO"] },
-      { id: "paraguay",   name: "Paraguay",       region: "South America",    members: ["PY"] },
-      { id: "chile",      name: "Chile",          region: "South America",    members: ["CL"] },
-      { id: "argentina",  name: "Argentina",      region: "South America",    members: ["AR", "UY"] },
+      { id: "canada",     name: "Canada",        region: "Northern America", members: ["CA"] },
+      { id: "usa",        name: "United States", region: "Northern America", members: ["US"] },
+      { id: "mexico",     name: "Mexico",        region: "Central America",  members: ["MX"] },
+      { id: "guatemala",  name: "Guatemala",     region: "Central America",  members: ["GT", "BZ"] },
+      { id: "honduras",   name: "Honduras",      region: "Central America",  members: ["HN", "SV"] },
+      { id: "nicaragua",  name: "Nicaragua",     region: "Central America",  members: ["NI"] },
+      { id: "costa_rica", name: "Costa Rica",    region: "Central America",  members: ["CR", "PA"] },
+    ],
+  },
+
+  samerica: {
+    name: "South America",
+    rotate: [60, 0],
+    regionBonus: { "Andes": 5, "Atlantic": 3, "Plate": 4 },
+    seaRoutes: [],
+    territories: [
+      { id: "colombia",  name: "Colombia",  region: "Andes",    members: ["CO"] },
+      { id: "ecuador",   name: "Ecuador",   region: "Andes",    members: ["EC"] },
+      { id: "peru",      name: "Peru",      region: "Andes",    members: ["PE"] },
+      { id: "bolivia",   name: "Bolivia",   region: "Andes",    members: ["BO"] },
+      { id: "chile",     name: "Chile",     region: "Andes",    members: ["CL"] },
+      { id: "venezuela", name: "Venezuela", region: "Atlantic", members: ["VE"] },
+      { id: "guianas",   name: "Guianas",   region: "Atlantic", members: ["GY", "SR", "GF"] },
+      { id: "brazil",    name: "Brazil",    region: "Atlantic", members: ["BR"] },
+      { id: "paraguay",  name: "Paraguay",  region: "Plate",    members: ["PY"] },
+      { id: "argentina", name: "Argentina", region: "Plate",    members: ["AR"] },
+      { id: "uruguay",   name: "Uruguay",   region: "Plate",    members: ["UY"] },
     ],
   },
 };
