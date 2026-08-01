@@ -9,7 +9,7 @@ import { currentPlayer, canAttack, canFortify, cutOffSet } from "./game.js";
 const colorOf = Object.fromEntries(PLAYERS.map((p) => [p.id, p.color]));
 const W = 960, H = 700;
 
-let svg, path, centroidCache, currentBoard = null, zoomBehavior;
+let svg, path, centroidCache, currentBoard = null, zoomBehavior, lastEventId = null;
 
 // Zoom controls (used by the on-map buttons); pinch/drag/wheel work via d3.zoom.
 export function zoomIn() { if (svg) svg.transition().duration(200).call(zoomBehavior.scaleBy, 1.6); }
@@ -60,6 +60,42 @@ export function drawMap(board, g, ctx) {
   badge.select("text").text((id) => g.state.get(id).armies);
 
   drawAction(g);
+
+  // When a world event hits one territory (Mustering / Unrest / Plague), flash it once so
+  // you can see WHERE it happened — the toast names a place you may not be able to find.
+  if (g.event && g.event.id !== lastEventId) {
+    lastEventId = g.event.id;
+    if (g.event.focus) flashEvent(g.event.focus);
+  }
+}
+
+// A one-shot flash on an event-struck territory: expanding rings + a floating +N / −N that
+// rises and fades. Lives in the self-removing "fx" layer, so normal redraws don't wipe it.
+function flashEvent(focus) {
+  const p = centroidCache.get(focus.id);
+  if (!p || !p.every(Number.isFinite)) return;
+  const [x, y] = p;
+  const up = focus.delta > 0;
+  const color = up ? "#2f8a4c" : "#b03030";
+  const fx = svg.select("g.fx");
+
+  for (let k = 0; k < 3; k++) {
+    fx.append("circle").attr("cx", x).attr("cy", y).attr("r", 11)
+      .attr("fill", "none").attr("stroke", color).attr("stroke-width", 3).attr("opacity", 0.9)
+      .style("pointer-events", "none")
+      .transition().delay(k * 480).duration(1200).ease(d3.easeCubicOut)
+      .attr("r", 48).attr("stroke-width", 0.5).attr("opacity", 0)
+      .on("end", function () { this.remove(); });
+  }
+
+  fx.append("text").attr("x", x).attr("y", y - 12).attr("text-anchor", "middle")
+    .attr("font-family", "ui-monospace, monospace").attr("font-weight", 700).attr("font-size", 20)
+    .attr("fill", color).attr("stroke", "#fff").attr("stroke-width", 3.5).attr("paint-order", "stroke")
+    .attr("opacity", 0).style("pointer-events", "none")
+    .text((up ? "+" : "−") + Math.abs(focus.delta))
+    .transition().duration(220).attr("opacity", 1)
+    .transition().delay(1800).duration(800).ease(d3.easeCubicIn).attr("y", y - 46).attr("opacity", 0)
+    .on("end", function () { this.remove(); });
 }
 
 // Animates the most recent action: an arrow with a travelling pulse for attacks/fortifies,
@@ -123,6 +159,7 @@ function initMap(board) {
   viewport.append("g").attr("class", "warn");
   viewport.append("g").attr("class", "action"); // arrows/pulses
   viewport.append("g").attr("class", "badges"); // army badges on top so counts are never covered
+  viewport.append("g").attr("class", "fx");     // one-shot world-event flashes (self-removing)
 
   // Pan / pinch / wheel zoom. A tap without drag still fires the path click.
   zoomBehavior = d3.zoom().scaleExtent([1, 8])

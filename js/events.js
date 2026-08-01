@@ -19,9 +19,9 @@ const EVENTS = [
     const id = rand(cands); const c = g.state.get(id);
     const lost = Math.min(c.armies - 1, Math.max(1, Math.floor(c.armies / 2)));
     c.armies -= lost;
-    return { title: "Unrest", impact: `${g.board.nameOf(id)} loses ${lost} ${lost === 1 ? "army" : "armies"} to revolt.` };
+    return { title: "Unrest", impact: `${g.board.nameOf(id)} loses ${lost} ${lost === 1 ? "army" : "armies"} to revolt.`, focus: { id, delta: -lost } };
   },
-  (g) => { const id = rand(playableIds(g)); g.state.get(id).armies += 3; return { title: "Mustering", impact: `Reinforcements gather in ${g.board.nameOf(id)} (+3).` }; },
+  (g) => { const id = rand(playableIds(g)); g.state.get(id).armies += 3; return { title: "Mustering", impact: `Reinforcements gather in ${g.board.nameOf(id)} (+3).`, focus: { id, delta: 3 } }; },
   (g) => {
     let big = null;
     for (const id of playableIds(g)) if (!big || g.state.get(id).armies > g.state.get(big).armies) big = id;
@@ -29,7 +29,7 @@ const EVENTS = [
     if (c.armies < 2) return { title: "Plague", impact: "A sickness spreads, but no host is large enough to matter." };
     const lost = Math.min(c.armies - 1, Math.max(1, Math.floor(c.armies / 3)));
     c.armies -= lost;
-    return { title: "Plague", impact: `The great host in ${g.board.nameOf(big)} is struck (−${lost}).` };
+    return { title: "Plague", impact: `The great host in ${g.board.nameOf(big)} is struck (−${lost}).`, focus: { id: big, delta: -lost } };
   },
   () => ({ title: "Uneasy Peace", impact: "The continent holds its breath — nothing happens this round." }),
 ];
@@ -37,7 +37,7 @@ const EVENTS = [
 // Resets per-round modifiers, runs a random event, records it on g.event; returns it.
 export function fireEvent(g) {
   g.roundMods = { reinforceDelta: 0, doubleRegion: null };
-  const { title, impact } = rand(EVENTS)(g);
-  g.event = { title, impact, round: g.round, id: Math.random() };
+  const { title, impact, focus } = rand(EVENTS)(g);
+  g.event = { title, impact, round: g.round, id: Math.random(), focus: focus || null };
   return g.event;
 }
