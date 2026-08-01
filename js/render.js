@@ -49,10 +49,10 @@ export function drawMap(board, g, ctx) {
   const badge = svg.select("g.badges").selectAll("g.b").data([...board.playable], (id) => id)
     .join((enter) => {
       const gg = enter.append("g").attr("class", "b").style("pointer-events", "none");
-      gg.append("circle").attr("r", 11).attr("stroke", "#fff").attr("stroke-width", 1.5);
+      gg.append("circle").attr("r", 9.5).attr("stroke", "#fff").attr("stroke-width", 1.4);
       gg.append("text").attr("text-anchor", "middle").attr("dy", "0.34em")
         .attr("fill", "#fff").attr("font-family", "ui-monospace, monospace")
-        .attr("font-size", 11.5).attr("font-weight", 600);
+        .attr("font-size", 10.5).attr("font-weight", 600);
       return gg;
     });
   badge.attr("transform", (id) => { const [x, y] = centroidCache.get(id); return `translate(${x},${y})`; });
